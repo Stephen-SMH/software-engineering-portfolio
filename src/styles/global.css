@@ -450,32 +450,6 @@ html.motion .btn {
   position: relative;
 }
 
-/* Preloader: shown only on the first visit of a session (head script sets it). */
-.preloader {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: none;
-  pointer-events: none;
-}
-html[data-intro="play"] .preloader {
-  display: block;
-}
-.preloader-panel {
-  position: absolute;
-  inset: 0;
-  background: var(--paper);
-}
-.preloader-panel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(60% 50% at 50% 55%, var(--accent-soft), transparent 70%);
-}
-html[data-intro="play"] body {
-  overflow: hidden;
-}
-
 /* Scroll progress hairline, top of the viewport. */
 .progress {
   position: fixed;
@@ -531,7 +505,6 @@ html.theme-vt::view-transition-new(root) {
 
 /* Terminal card idles with a slow float + sway so the hero never sits dead still. */
 .hero-float {
-  animation: hero-float 8s ease-in-out 2.6s infinite;
   will-change: transform;
 }
 /* The whole card orbits: swings left/right, then tips top/bottom, in one loop. */
@@ -564,13 +537,10 @@ html.theme-vt::view-transition-new(root) {
   border-radius: 3rem;
   background: radial-gradient(closest-side, color-mix(in oklab, var(--accent) 80%, transparent), transparent 75%);
   filter: blur(44px);
-  animation: hero-halo 5s ease-in-out infinite;
 }
 .hero-float .bezel {
-  animation: hero-edge 5s ease-in-out infinite;
 }
 .hero-float [data-count] {
-  animation: hero-num 5s ease-in-out infinite;
 }
 @keyframes hero-halo {
   0%,
@@ -604,78 +574,10 @@ html.theme-vt::view-transition-new(root) {
   }
 }
 
-/* Reduced motion keeps this one ambient card alive, gently: the glow pulses as
-   usual (no movement), and the float shrinks to a few pixels with no rotation. */
-@media (prefers-reduced-motion: reduce) {
-  .hero-float,
-  .hero-float::before,
-  .hero-float .bezel,
-  .hero-float [data-count] {
-    animation-iteration-count: infinite !important;
-  }
-  .hero-float {
-    animation-name: hero-float-calm;
-    animation-duration: 10s !important;
-    animation-delay: 0s !important;
-  }
-  .hero-float::before,
-  .hero-float .bezel,
-  .hero-float [data-count] {
-    animation-duration: 5s !important;
-  }
-}
-@keyframes hero-float-calm {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(0, -16px, 0);
-  }
-}
-
-/* Light mode: a dark, moving shade around the card that follows the swing. */
+/* Light mode: a soft dark shade under the hero card. */
 :root[data-theme="light"] .hero-float::before {
   background: radial-gradient(closest-side, rgba(8, 24, 36, 0.55), transparent 75%);
   filter: blur(40px);
-  animation: hero-shade-halo 8s ease-in-out 2.6s infinite;
-}
-:root[data-theme="light"] .hero-float .bezel {
-  animation: hero-shade 8s ease-in-out 2.6s infinite;
-}
-@keyframes hero-shade-halo {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: translate(26px, 8px) scale(1);
-  }
-  25% {
-    opacity: 0.8;
-    transform: translate(0, 34px) scale(1.08);
-  }
-  50% {
-    opacity: 0.55;
-    transform: translate(-26px, 8px) scale(1);
-  }
-  75% {
-    opacity: 0.8;
-    transform: translate(0, -18px) scale(1.08);
-  }
-}
-@keyframes hero-shade {
-  0%,
-  100% {
-    box-shadow: 0 0 0 1px var(--bezel-ring), 36px 14px 60px -8px rgba(8, 24, 36, 0.55);
-  }
-  25% {
-    box-shadow: 0 0 0 1px var(--bezel-ring), 0 46px 70px -8px rgba(8, 24, 36, 0.6);
-  }
-  50% {
-    box-shadow: 0 0 0 1px var(--bezel-ring), -36px 14px 60px -8px rgba(8, 24, 36, 0.55);
-  }
-  75% {
-    box-shadow: 0 0 0 1px var(--bezel-ring), 0 -30px 70px -8px rgba(8, 24, 36, 0.5);
-  }
 }
 
 /* Ticker rows: pure CSS so they run even if the script never loads. motion.ts
@@ -707,12 +609,10 @@ html.theme-vt::view-transition-new(root) {
   position: relative;
   isolation: isolate;
   height: 100%;
-  animation: card-orbit 9s ease-in-out var(--phase, 0s) infinite;
   will-change: transform;
 }
 .card-float > .bezel {
   height: 100%;
-  animation: hero-edge 5s ease-in-out var(--phase, 0s) infinite;
 }
 .card-float::before {
   content: "";
@@ -722,7 +622,6 @@ html.theme-vt::view-transition-new(root) {
   border-radius: 2.5rem;
   background: radial-gradient(closest-side, color-mix(in oklab, var(--accent) 55%, transparent), transparent 75%);
   filter: blur(34px);
-  animation: hero-halo 5s ease-in-out var(--phase, 0s) infinite;
 }
 @keyframes card-orbit {
   0%,
@@ -741,10 +640,8 @@ html.theme-vt::view-transition-new(root) {
 }
 :root[data-theme="light"] .card-float::before {
   background: radial-gradient(closest-side, rgba(8, 24, 36, 0.4), transparent 75%);
-  animation: hero-shade-halo 9s ease-in-out var(--phase, 0s) infinite;
 }
 :root[data-theme="light"] .card-float > .bezel {
-  animation: hero-shade 9s ease-in-out var(--phase, 0s) infinite;
 }
 
 /* Keyword highlights in prose. Both pairs are the theme's own "soft ink on soft tint" tokens,
@@ -1073,7 +970,6 @@ p {
 /* ---- Skills scenes: micro animations + reduce-motion re-assert (scene loops are the content) ---- */
 .sc-spin { animation: sc-spin 0.9s linear infinite; display: inline-block; }
 .sc-ring { animation: sc-ring 1.8s ease-out infinite; }
-.sc-ring-d { animation: sc-pulse 2.4s ease-in-out infinite; }
 .sc-blink { animation: sc-blink 1s steps(1) infinite; }
 .sc-belt { animation: sc-belt 8s linear infinite; }
 @keyframes sc-spin { to { transform: rotate(360deg); } }
@@ -1095,7 +991,6 @@ p {
 /* ---- Skills scenes: micro animations + reduce-motion re-assert (scene loops are the content) ---- */
 .sc-spin { animation: sc-spin 0.9s linear infinite; display: inline-block; }
 .sc-ring { animation: sc-ring 1.8s ease-out infinite; }
-.sc-ring-d { animation: sc-pulse 2.4s ease-in-out infinite; }
 .sc-blink { animation: sc-blink 1s steps(1) infinite; }
 .sc-belt { animation: sc-belt 8s linear infinite; }
 @keyframes sc-spin { to { transform: rotate(360deg); } }
@@ -1168,15 +1063,12 @@ p {
   background: color-mix(in srgb, var(--c) 14%, transparent);
   border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
   box-shadow: 0 0 0 0 transparent, 0 10px 30px -18px var(--c);
-  animation: tk-glow 3.2s ease-in-out infinite;
   animation-delay: var(--d, 0s);
   transition: transform 0.3s;
 }
 .tk-pill:hover { transform: translateY(-4px) scale(1.04); }
-.tk-icon { display: inline-grid; place-items: center; width: 2rem; height: 2rem; color: var(--c); animation: tk-bob 1s ease-in-out infinite alternate; }
+.tk-icon { display: inline-grid; place-items: center; width: 2rem; height: 2rem; color: var(--c); }
 .tk-icon svg { width: 100%; height: 100%; }
-@keyframes tk-bob { from { transform: translateY(-5px); } to { transform: translateY(5px); } }
-@media (prefers-reduced-motion: reduce) { .tk-icon { animation-duration: 1s !important; animation-iteration-count: infinite !important; } }
 
 /* ---- Big terminal section: static, glass, bigger type ---- */
 .tm-stage {
@@ -1207,8 +1099,6 @@ p {
   0%, 100% { box-shadow: 0 0 0 0 transparent, 0 10px 30px -18px var(--c); border-color: color-mix(in srgb, var(--c) 40%, transparent); }
   50% { box-shadow: 0 0 22px 2px color-mix(in srgb, var(--c) 55%, transparent), 0 10px 30px -14px var(--c); border-color: color-mix(in srgb, var(--c) 85%, transparent); }
 }
-.tk-icon { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--c) 70%, transparent)); }
-@media (prefers-reduced-motion: reduce) { .tk-pill { animation-duration: 3.2s !important; animation-iteration-count: infinite !important; } }
 
 /* ---- Navigation layouts: top bar (default) or full-height left rail (Discord / VS Code style) ---- */
 .rail {
@@ -1287,19 +1177,19 @@ html:not([data-navmode="side"]) [data-nav-side] { display: none !important; }
 /* ---- Terminal: alive (restored) — travelling border glow, breathing corners, scanline, colour theme, fox ---- */
 .tm-live { --pink:#f472b6; --violet:#a78bfa; --sky:#93c5fd; --green:#86efac; --amber:#fcd34d; }
 @property --a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-.tm-glow { isolation: isolate; box-shadow: 0 0 40px -6px rgba(244,114,182,.35), 0 0 90px -20px rgba(99,102,241,.6); animation: tm-breathe 4.5s ease-in-out infinite; }
+.tm-glow { isolation: isolate; box-shadow: 0 0 40px -6px rgba(244,114,182,.35), 0 0 90px -20px rgba(99,102,241,.6); }
 .tm-glow::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px; z-index: 5; pointer-events: none;
   background: conic-gradient(from var(--a, 0deg), transparent 0 60%, #f472b6 72%, #a78bfa 84%, #5b8cff 92%, transparent);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
-  animation: tm-spin 6s linear infinite; }
+  }
 .tm-glow::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
   background: radial-gradient(60% 40% at 0% 0%, rgba(244,114,182,.22), transparent 70%), radial-gradient(60% 40% at 100% 100%, rgba(99,102,241,.28), transparent 70%);
-  animation: tm-corners 5s ease-in-out infinite alternate; }
+  }
 @keyframes tm-spin { to { --a: 360deg; } }
 @keyframes tm-breathe { 0%,100% { box-shadow: 0 0 34px -8px rgba(244,114,182,.3), 0 0 80px -24px rgba(99,102,241,.5); } 50% { box-shadow: 0 0 56px -4px rgba(244,114,182,.55), 0 0 120px -16px rgba(99,102,241,.85); } }
 @keyframes tm-corners { from { opacity: .35; } to { opacity: 1; } }
 .tm-scan { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px); mix-blend-mode: overlay; overflow: hidden; }
-.tm-scan::after { content: ""; position: absolute; left: 0; right: 0; height: 80px; top: -80px; background: linear-gradient(180deg, transparent, rgba(167,139,250,.14), transparent); animation: tm-sweep 5.5s linear infinite; }
+.tm-scan::after { content: ""; position: absolute; left: 0; right: 0; height: 80px; top: -80px; background: linear-gradient(180deg, transparent, rgba(167,139,250,.14), transparent); }
 @keyframes tm-sweep { to { transform: translateY(1200px); } }
 .tm-big > :not(.tm-scan) { position: relative; z-index: 3; }
 .tm-live-chip { display: inline-flex; align-items: center; gap: .45rem; border: 1px solid rgba(134,239,172,.35); background: rgba(134,239,172,.1); border-radius: 9999px; padding: .12rem .6rem; font-size: 11.5px; color: #86efac; }
@@ -1325,16 +1215,16 @@ html:not([data-navmode="side"]) [data-nav-side] { display: none !important; }
 .tm-big .tm-chip { color: #fff; border-color: rgba(167,139,250,.35); transition: transform .25s, box-shadow .25s, background .25s; }
 .tm-big .tm-chip:hover { transform: translateY(-3px); background: linear-gradient(90deg, rgba(244,114,182,.35), rgba(99,102,241,.35)); box-shadow: 0 0 18px -2px rgba(244,114,182,.7); }
 .tm-orb { position: absolute; border-radius: 9999px; filter: blur(60px); pointer-events: none; }
-.tm-orb-a { width: 22rem; height: 22rem; left: -6rem; top: -6rem; background: rgba(244,114,182,.28); animation: tm-drift 9s ease-in-out infinite alternate; }
-.tm-orb-b { width: 24rem; height: 24rem; right: -8rem; bottom: -8rem; background: rgba(99,102,241,.4); animation: tm-drift 11s ease-in-out infinite alternate-reverse; }
+.tm-orb-a { width: 22rem; height: 22rem; left: -6rem; top: -6rem; background: rgba(244,114,182,.28); }
+.tm-orb-b { width: 24rem; height: 24rem; right: -8rem; bottom: -8rem; background: rgba(99,102,241,.4); }
 @keyframes tm-drift { to { transform: translate(40px, 30px) scale(1.15); } }
-.tm-spark { position: absolute; bottom: 10px; width: 5px; height: 5px; border-radius: 9999px; background: #f9a8d4; box-shadow: 0 0 10px 2px rgba(249,168,212,.8); animation: tm-rise 7s linear infinite; animation-delay: var(--d); opacity: 0; pointer-events: none; }
+.tm-spark { position: absolute; bottom: 10px; width: 5px; height: 5px; border-radius: 9999px; background: #f9a8d4; box-shadow: 0 0 10px 2px rgba(249,168,212,.8); opacity: 0; pointer-events: none; }
 @keyframes tm-rise { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-420px); opacity: 0; } }
-.tm-fox { position: absolute; right: 2rem; top: -8.4rem; z-index: 6; display: flex; flex-direction: column; align-items: flex-end; animation: tm-bob 3s ease-in-out infinite; pointer-events: none; transform-origin: 50% 100%; }
+.tm-fox { position: absolute; right: 2rem; top: -8.4rem; z-index: 6; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; transform-origin: 50% 100%; }
 .tm-fox svg { filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); }
 .tm-bubble { margin: 0 .5rem .2rem 0; max-width: 16rem; border-radius: 1rem 1rem .2rem 1rem; background: #fff; color: #1b1738; font-size: 12.5px; font-weight: 500; padding: .35rem .75rem; box-shadow: 0 8px 24px -8px rgba(0,0,0,.5); white-space: nowrap; }
 @keyframes tm-bob { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-7px) rotate(2deg); } }
-.tm-fox-hop { animation: tm-hop .6s cubic-bezier(.3,1.6,.5,1), tm-bob 3s ease-in-out .6s infinite; }
+.tm-fox-hop { animation: tm-hop .6s cubic-bezier(.3,1.6,.5,1); }
 @keyframes tm-hop { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-26px) scale(1.08) rotate(-6deg); } 100% { transform: translateY(0) scale(1); } }
 @media (max-width: 640px) { .tm-fox { display: none; } }
 
@@ -1369,17 +1259,8 @@ html:not([data-navmode="side"]) [data-nav-side] { display: none !important; }
 @media (max-width: 720px) { .tm-mac .tm-title { display: none; } }
 .mb-screen .tm-log { flex: 1; height: auto; min-height: 0; }
 
-/* the global reduce-motion rule would freeze all of this; this section is meant to move */
+/* the global reduce-motion rule would freeze the typing; it carries the content */
 @media (prefers-reduced-motion: reduce) {
-  .tm-glow { animation: tm-breathe 4.5s ease-in-out infinite !important; }
-  .tm-glow::before { animation: tm-spin 6s linear infinite !important; }
-  .tm-glow::after { animation: tm-corners 5s ease-in-out infinite alternate !important; }
-  .tm-scan::after { animation: tm-sweep 5.5s linear infinite !important; }
-  .tm-live-chip b { animation: tm-ping 1.6s ease-out infinite !important; }
-  .tm-orb-a { animation: tm-drift 9s ease-in-out infinite alternate !important; }
-  .tm-orb-b { animation: tm-drift 11s ease-in-out infinite alternate-reverse !important; }
-  .tm-spark { animation: tm-rise 7s linear infinite !important; animation-delay: var(--d) !important; }
-  .tm-fox { animation: tm-bob 3s ease-in-out infinite !important; }
   .tm-big .tm-line { animation: tm-type .55s steps(28, end) both !important; }
 }
 .tm-mac .tm-live-chip { margin-left: auto; }

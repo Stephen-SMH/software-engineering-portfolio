@@ -27,7 +27,6 @@ gsap.registerPlugin(ScrollTrigger, SplitText);
 const html = document.documentElement;
 const $ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) =>
   Array.from(root.querySelectorAll<T>(sel));
-const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
 const motionOn = () => html.classList.contains("motion");
 /** Thai / Burmese clusters must not be cut per character. */
 const latin = () => html.lang === "en";
@@ -53,7 +52,7 @@ function setupGlobal() {
   window.addEventListener("scroll-lock", (e) => {
     const locked = (e as CustomEvent<boolean>).detail;
     if (locked) lenis?.stop();
-    else if (html.dataset.intro !== "play") lenis?.start();
+    else lenis?.start();
   });
 
   // Same-page "#section" links. Astro's router and the browser both jump there
@@ -77,54 +76,6 @@ function setupGlobal() {
     setProgress(l.progress);
     // Floating nav steps aside while reading down, returns on any upward scroll.
     $("[data-nav]")[0]?.setAttribute("data-hidden", String(l.direction === 1 && l.scroll > 260));
-  });
-}
-
-/* -------------------------------------------------------------------------- */
-/* Preloader (first visit of a session)                                       */
-/* -------------------------------------------------------------------------- */
-function playIntro(): Promise<void> {
-  if (html.dataset.intro !== "play") return Promise.resolve();
-
-  return new Promise((resolve) => {
-    const panel = $("[data-preloader-panel]")[0];
-    const name = $("[data-preloader-name]")[0];
-    const bar = $("[data-preloader-bar]")[0];
-    const count = $("[data-preloader-count]")[0];
-    const counter = { v: 0 };
-    lenis?.stop();
-
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      delete html.dataset.intro;
-      try {
-        sessionStorage.setItem("intro", "1");
-      } catch {
-        /* private mode: the intro simply replays next visit */
-      }
-      lenis?.start();
-    };
-
-    gsap.set(panel, { clipPath: "inset(0% 0% 0% 0%)" });
-    const tl = gsap.timeline({ onComplete: finish });
-    // Kept short: the curtain is a greeting, not a wait.
-    tl.from(name, { yPercent: 115, duration: 0.7, ease: "expo.out" }, 0.05)
-      .to(counter, { v: 100, duration: 0.8, ease: "power2.inOut", onUpdate: () => (count.textContent = String(Math.round(counter.v))) }, 0.05)
-      .to(bar, { scaleX: 1, duration: 0.8, ease: "power2.inOut" }, 0.05)
-      .addLabel("exit", 0.9)
-      .to(name, { yPercent: -115, duration: 0.45, ease: "expo.in" }, "exit-=0.1")
-      .to(count, { yPercent: 40, opacity: 0, duration: 0.35, ease: "power2.in" }, "exit-=0.1")
-      .to(panel, { clipPath: "inset(0% 0% 100% 0%)", duration: 0.75, ease: "expo.inOut" }, "exit")
-      // The hero starts while the curtain is still lifting.
-      .call(() => resolve(), [], "exit+=0.15");
-
-    // Belt and braces: never leave the curtain up.
-    setTimeout(() => {
-      finish();
-      resolve();
-    }, 7000);
   });
 }
 
@@ -167,23 +118,18 @@ function typeInto(el: HTMLElement) {
 /* -------------------------------------------------------------------------- */
 /* Per page view                                                              */
 /* -------------------------------------------------------------------------- */
-function initPage(introDone: Promise<void>) {
+function initPage() {
   ctx = gsap.context(() => {
-    hero(introDone);
+    hero();
     headings();
-    readingText();
     reveals();
     details();
     marquee();
     footerMark();
-    if (fine) {
-      tilt();
-      magnetic();
-    }
   });
 }
 
-function hero(introDone: Promise<void>) {
+function hero() {
   const section = $("[data-hero-section]")[0];
   if (!section) return;
 
@@ -192,7 +138,7 @@ function hero(introDone: Promise<void>) {
   const card = $("[data-hero='card']")[0];
   const terms = $("[data-term]");
 
-  // Split now (so layout is final), play once the curtain is lifting.
+  // Split now (so layout is final), then play.
   const wordsOnly = !latin();
   const split = SplitText.create(h1, {
     type: wordsOnly ? "words" : "words,chars",
@@ -206,61 +152,24 @@ function hero(introDone: Promise<void>) {
   gsap.set(card, { autoAlpha: 0, y: 90, scale: 0.9 });
   [h1, ...items, card].forEach((el) => el.classList.add("is-in"));
 
-  introDone.then(() => {
-    if (!section.isConnected) return;
-    const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
-    tl.to(parts, { yPercent: 0, duration: 1.0, stagger: { each: wordsOnly ? 0.08 : 0.025 } }, 0)
-      .to(items, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.07 }, 0.2)
-      .to(card, { autoAlpha: 1, y: 0, scale: 1, duration: 1.0 }, 0.15);
+  const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+  tl.to(parts, { yPercent: 0, duration: 1.0, stagger: { each: wordsOnly ? 0.08 : 0.025 } }, 0)
+    .to(items, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.07 }, 0.2)
+    .to(card, { autoAlpha: 1, y: 0, scale: 1, duration: 1.0 }, 0.15);
 
-    // Terminal "boots": each command types out, outputs fade in, stats count up.
-    const term = gsap.timeline({ delay: 0.3 });
-    terms.forEach((t) => {
-      const typed = t.querySelector<HTMLElement>("[data-type]");
-      const num = t.querySelector<HTMLElement>("[data-count]");
-      term.call(() => t.classList.add("is-in"));
-      if (typed) term.add(typeInto(typed));
-      else term.from(t, { y: 12, autoAlpha: 0, duration: 0.5, ease: "power2.out" }, ">-0.3");
-      if (num) {
-        const c = countTween(num, { duration: 1.1 });
-        if (c) term.add(c, "<");
-      }
-    });
-  });
-
-  // Hero leaves with a slow parallax; orbs and grid drift against the scroll.
-  gsap.to("[data-hero-grid]", {
-    yPercent: -9,
-    scale: 0.97,
-    opacity: 0.25,
-    ease: "none",
-    scrollTrigger: { trigger: section, start: "top top", end: "bottom top", scrub: true },
-  });
-  $("[data-orb]").forEach((orb) => {
-    gsap.to(orb, {
-      yPercent: parseFloat(orb.dataset.orb!) * 1.5,
-      ease: "none",
-      scrollTrigger: { trigger: section, start: "top top", end: "bottom top", scrub: true },
-    });
-    if (fine) {
-      const depth = parseFloat(orb.dataset.orb!) * 2.2;
-      const ox = gsap.quickTo(orb, "x", { duration: 1.6, ease: "power3.out" });
-      const oy = gsap.quickTo(orb, "y", { duration: 1.6, ease: "power3.out" });
-      const move = (e: PointerEvent) => {
-        ox((e.clientX / innerWidth - 0.5) * depth);
-        oy((e.clientY / innerHeight - 0.5) * depth);
-      };
-      window.addEventListener("pointermove", move);
-      cleanups.push(() => window.removeEventListener("pointermove", move));
+  // Terminal "boots": each command types out, outputs fade in, stats count up.
+  const term = gsap.timeline({ delay: 0.3 });
+  terms.forEach((t) => {
+    const typed = t.querySelector<HTMLElement>("[data-type]");
+    const num = t.querySelector<HTMLElement>("[data-count]");
+    term.call(() => t.classList.add("is-in"));
+    if (typed) term.add(typeInto(typed));
+    else term.from(t, { y: 12, autoAlpha: 0, duration: 0.5, ease: "power2.out" }, ">-0.3");
+    if (num) {
+      const c = countTween(num, { duration: 1.1 });
+      if (c) term.add(c, "<");
     }
   });
-  $("[data-parallax]").forEach((el) =>
-    gsap.to(el, {
-      yPercent: parseFloat(el.dataset.parallax!) * 100,
-      ease: "none",
-      scrollTrigger: { trigger: section, start: "top top", end: "bottom top", scrub: true },
-    }),
-  );
 }
 
 /** Section titles: each line rises out of its own mask. */
@@ -288,33 +197,10 @@ function headings() {
 }
 
 /** Body copy lights up word by word at reading pace as it crosses the viewport. */
-function readingText() {
-  $("[data-words]").forEach((p) => {
-    SplitText.create(p, {
-      type: "words",
-      wordsClass: "word",
-      autoSplit: true,
-      onSplit(self) {
-        p.classList.add("is-in");
-        return gsap.fromTo(
-          self.words,
-          { opacity: 0.16 },
-          {
-            opacity: 1,
-            ease: "none",
-            stagger: 0.12,
-            scrollTrigger: { trigger: p, start: "top 84%", end: "bottom 58%", scrub: 0.6 },
-          },
-        );
-      },
-    });
-  });
-}
-
 /** Everything tagged [data-reveal], batched so siblings entering together cascade. */
 function reveals() {
   const variants: Record<string, [gsap.TweenVars, gsap.TweenVars]> = {
-    "": [{ y: 70, autoAlpha: 0, filter: "blur(8px)" }, { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 1.2, ease: "expo.out" }],
+    "": [{ y: 40, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.8, ease: "expo.out" }],
     fade: [{ autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out" }],
     left: [{ x: -60, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 1.2, ease: "expo.out" }],
     card: [
@@ -417,53 +303,9 @@ function footerMark() {
   });
 }
 
-/** 3D pointer tilt + a spotlight that tracks the cursor inside each card. */
-function tilt() {
-  $("[data-tilt]").forEach((el) => {
-    const core = el.querySelector<HTMLElement>(".bezel-core")!;
-    gsap.set(el, { "--rx": "0deg", "--ry": "0deg" });
-    const max = el.hasAttribute("data-hero-card") ? 7 : 6;
-
-    const move = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width;
-      const py = (e.clientY - r.top) / r.height;
-      gsap.to(el, { "--ry": `${(px - 0.5) * max * 2}deg`, "--rx": `${(0.5 - py) * max * 1.6}deg`, duration: 0.7, ease: "power3.out", overwrite: "auto" });
-      core.style.setProperty("--mx", `${px * 100}%`);
-      core.style.setProperty("--my", `${py * 100}%`);
-      core.style.setProperty("--spot", "1");
-    };
-    const leave = () => {
-      gsap.to(el, { "--rx": "0deg", "--ry": "0deg", duration: 1.4, ease: "elastic.out(1, 0.55)", overwrite: "auto" });
-      core.style.setProperty("--spot", "0");
-    };
-    el.addEventListener("pointermove", move);
-    el.addEventListener("pointerleave", leave);
-  });
-}
-
-/** Buttons lean toward the pointer. */
-function magnetic() {
-  $(".btn, [data-magnetic]").forEach((el) => {
-    const x = gsap.quickTo(el, "x", { duration: 0.9, ease: "elastic.out(1, 0.45)" });
-    const y = gsap.quickTo(el, "y", { duration: 0.9, ease: "elastic.out(1, 0.45)" });
-    el.addEventListener("pointermove", (e) => {
-      const r = el.getBoundingClientRect();
-      x((e.clientX - (r.left + r.width / 2)) * 0.28);
-      y((e.clientY - (r.top + r.height / 2)) * 0.4);
-    });
-    el.addEventListener("pointerleave", () => {
-      x(0);
-      y(0);
-    });
-  });
-}
-
 /* -------------------------------------------------------------------------- */
 /* Lifecycle                                                                  */
 /* -------------------------------------------------------------------------- */
-let firstLoad = true;
-
 document.addEventListener("astro:before-swap", () => {
   ctx?.revert();
   ctx = null;
@@ -478,16 +320,13 @@ document.addEventListener("astro:page-load", () => {
   if (!motionOn()) return;
   try {
     if (!globalReady) setupGlobal();
-    const intro = firstLoad ? playIntro() : Promise.resolve();
-    firstLoad = false;
-    initPage(intro);
+    initPage();
     window.__motionReady = true;
     document.fonts?.ready.then(() => ScrollTrigger.refresh());
   } catch (err) {
     // Never leave content hidden because an animation failed to set up.
     console.error("[motion]", err);
     html.classList.remove("motion");
-    delete html.dataset.intro;
     window.__motionReady = true;
   }
 });

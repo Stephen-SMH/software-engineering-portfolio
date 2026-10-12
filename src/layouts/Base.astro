@@ -20,7 +20,6 @@ const { locale, title, description, name } = Astro.props as {
  * deliberately ignore prefers-color-scheme. Marks the page `.js`, and `.motion`
  * only when the visitor has not asked for reduced motion, so the entrance
  * states in global.css never hide content that JS will not reveal.
- * `data-intro` plays the preloader once per session.
  */
 const boot = `(function(){
   function apply(d){
@@ -29,8 +28,7 @@ const boot = `(function(){
     if(!matchMedia("(prefers-reduced-motion: reduce)").matches)d.classList.add("motion");
   }
   var d=document.documentElement;apply(d);
-  try{if(d.classList.contains("motion")&&!sessionStorage.getItem("intro")){d.dataset.intro="play";}}catch(e){}
-  setTimeout(function(){if(!window.__motionReady){d.classList.remove("motion");delete d.dataset.intro}},5000);
+  setTimeout(function(){if(!window.__motionReady){d.classList.remove("motion")}},5000);
   document.addEventListener("astro:after-swap",function(){apply(document.documentElement)});
 })();`;
 ---
@@ -46,25 +44,7 @@ const boot = `(function(){
     <ClientRouter />
   </head>
   <body class="font-sans antialiased">
-    <div class="grain" aria-hidden="true"></div>
     <div class="progress" data-progress aria-hidden="true" transition:persist="progress"></div>
-
-    <div class="preloader" data-preloader aria-hidden="true">
-      <div class="preloader-panel" data-preloader-panel>
-        <div class="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6">
-          <p class="overflow-hidden font-display text-[clamp(2.5rem,9vw,6.5rem)] font-semibold leading-none tracking-tighter text-ink">
-            <span class="block" data-preloader-name>{name}</span>
-          </p>
-          <div class="h-px w-[min(18rem,60vw)] overflow-hidden bg-rule">
-            <div class="h-full origin-left bg-accent" data-preloader-bar style="transform:scaleX(0)"></div>
-          </div>
-        </div>
-        <p
-          class="absolute bottom-6 right-6 font-mono text-[clamp(2.5rem,8vw,6rem)] font-medium leading-none tabular-nums text-ink-faint sm:bottom-10 sm:right-10"
-          data-preloader-count
-        >0</p>
-      </div>
-    </div>
 
     <slot />
 
