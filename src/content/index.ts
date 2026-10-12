@@ -1,7 +1,7 @@
 import { en } from "./en";
-import { my } from "./my";
-import { th } from "./th";
-import type { DeepPartial, Dict, Locale } from "./types";
+import { my, myPhrases } from "./my";
+import { th, thPhrases } from "./th";
+import type { DeepPartial, Dict, Locale, Phrasebook } from "./types";
 
 export * from "./types";
 
@@ -19,8 +19,28 @@ function merge<T>(base: T, over: DeepPartial<T> | undefined): T {
   return out as T;
 }
 
-const overrides: Record<Locale, DeepPartial<Dict> | undefined> = { en: undefined, my, th };
+/** Swaps every string that has an entry in the phrasebook; anything else stays as it is. */
+function translate<T>(value: T, book: Phrasebook): T {
+  if (typeof value === "string") return (book[value] ?? value) as T;
+  if (Array.isArray(value)) return value.map((v) => translate(v, book)) as T;
+  if (isPlainObject(value)) {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) out[k] = translate(v, book);
+    return out as T;
+  }
+  return value;
+}
 
+const overrides: Record<Locale, DeepPartial<Dict> | undefined> = { en: undefined, my, th };
+const phrasebooks: Record<Locale, Phrasebook | undefined> = { en: undefined, my: myPhrases, th: thPhrases };
+
+/**
+ * English is the source of truth for structure: every role, project, tag and link comes from `en.ts`.
+ * A locale overrides interface labels key by key, then its phrasebook translates body copy string by
+ * string. New English content shows up in every language at once and stays English until translated.
+ */
 export function getDict(locale: Locale): Dict {
-  return merge(en, overrides[locale]);
+  const book = phrasebooks[locale];
+  const dict = merge(en, overrides[locale]);
+  return book ? translate(dict, book) : dict;
 }

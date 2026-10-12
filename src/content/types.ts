@@ -177,3 +177,6 @@ export type DeepPartial<T> = T extends (infer U)[]
   : T extends object
     ? { [K in keyof T]?: DeepPartial<T[K]> }
     : T;
+
+/** English sentence -> translated sentence. Keys must match `en.ts` exactly. */
+export type Phrasebook = Record<string, string>;
