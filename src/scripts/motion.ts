@@ -125,15 +125,16 @@ function playIntro(): Promise<void> {
 
     gsap.set(panel, { clipPath: "inset(0% 0% 0% 0%)" });
     const tl = gsap.timeline({ onComplete: finish });
-    tl.from(name, { yPercent: 115, duration: 1.3, ease: "expo.out" }, 0.1)
-      .to(counter, { v: 100, duration: 1.7, ease: "power2.inOut", onUpdate: () => (count.textContent = String(Math.round(counter.v))) }, 0.1)
-      .to(bar, { scaleX: 1, duration: 1.7, ease: "power2.inOut" }, 0.1)
-      .addLabel("exit", 1.95)
-      .to(name, { yPercent: -115, duration: 0.7, ease: "expo.in" }, "exit-=0.1")
-      .to(count, { yPercent: 40, opacity: 0, duration: 0.5, ease: "power2.in" }, "exit-=0.1")
-      .to(panel, { clipPath: "inset(0% 0% 100% 0%)", duration: 1.15, ease: "expo.inOut" }, "exit")
+    // Kept short: the curtain is a greeting, not a wait.
+    tl.from(name, { yPercent: 115, duration: 0.7, ease: "expo.out" }, 0.05)
+      .to(counter, { v: 100, duration: 0.8, ease: "power2.inOut", onUpdate: () => (count.textContent = String(Math.round(counter.v))) }, 0.05)
+      .to(bar, { scaleX: 1, duration: 0.8, ease: "power2.inOut" }, 0.05)
+      .addLabel("exit", 0.9)
+      .to(name, { yPercent: -115, duration: 0.45, ease: "expo.in" }, "exit-=0.1")
+      .to(count, { yPercent: 40, opacity: 0, duration: 0.35, ease: "power2.in" }, "exit-=0.1")
+      .to(panel, { clipPath: "inset(0% 0% 100% 0%)", duration: 0.75, ease: "expo.inOut" }, "exit")
       // The hero starts while the curtain is still lifting.
-      .call(() => resolve(), [], "exit+=0.35");
+      .call(() => resolve(), [], "exit+=0.15");
 
     // Belt and braces: never leave the curtain up.
     setTimeout(() => {
@@ -224,12 +225,12 @@ function hero(introDone: Promise<void>) {
   introDone.then(() => {
     if (!section.isConnected) return;
     const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
-    tl.to(parts, { yPercent: 0, duration: 1.5, stagger: { each: wordsOnly ? 0.12 : 0.04 } }, 0)
-      .to(items, { autoAlpha: 1, y: 0, duration: 1.2, stagger: 0.13 }, 0.45)
-      .to(card, { autoAlpha: 1, y: 0, scale: 1, duration: 1.5 }, 0.35);
+    tl.to(parts, { yPercent: 0, duration: 1.0, stagger: { each: wordsOnly ? 0.08 : 0.025 } }, 0)
+      .to(items, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.07 }, 0.2)
+      .to(card, { autoAlpha: 1, y: 0, scale: 1, duration: 1.0 }, 0.15);
 
     // Terminal "boots": each command types out, outputs fade in, stats count up.
-    const term = gsap.timeline({ delay: 0.5 });
+    const term = gsap.timeline({ delay: 0.3 });
     terms.forEach((t) => {
       const typed = t.querySelector<HTMLElement>("[data-type]");
       const num = t.querySelector<HTMLElement>("[data-count]");

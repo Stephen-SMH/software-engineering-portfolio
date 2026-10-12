@@ -4,10 +4,13 @@ import { withBase } from "./ui";
 
 const { current, label } = Astro.props as { current: Locale; label: string };
 ---
+<!-- data-astro-reload: a full load per language. The ClientRouter swap left the
+     component scripts (skills tabs, terminal, build) bound to the old page. -->
 <div role="group" aria-label={label} class="flex items-center rounded-full bg-ink/6 p-0.5 font-mono text-[12px]">
   {locales.map((l) => (
     <a
       href={withBase(`/${l}/`)}
+      data-astro-reload
       hreflang={localeMeta[l].htmlLang}
       lang={localeMeta[l].htmlLang}
       aria-label={localeMeta[l].name}

@@ -87,6 +87,7 @@ export function Nav({
         <div className="glass tn-bar pointer-events-auto flex max-w-full items-center gap-2 rounded-full p-2.5">
           <a
             href={withBase(`/${locale}/`)}
+            data-astro-reload=""
             onClick={() => setOpen(false)}
             className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full py-3.5 pl-4 pr-3 font-mono text-[15px] font-medium text-ink xl:pl-6 xl:pr-5 xl:text-[17px]"
           >
@@ -119,7 +120,8 @@ export function Nav({
             <button type="button" onClick={toggleMode} aria-label="Switch to side menu" title="Side menu" className="hidden h-12 w-12 place-items-center rounded-full text-ink-soft transition-colors hover:bg-ink/10 hover:text-ink lg:grid">
               <SidebarSimple size={22} weight="light" />
             </button>
-            {controls}
+            {/* Below sm the bar has no room for these; they live in the mobile menu. */}
+            <div className="hidden sm:contents">{controls}</div>
             <a href={withBase("/cv.pdf")} download className="btn btn-primary hero-cta ml-1 hidden !pl-5 !text-[15px] md:inline-flex xl:!pl-6 xl:!text-[16px]">
               {nav.downloadCv}
               <span className="btn-icon !h-10 !w-10" aria-hidden="true">
@@ -152,7 +154,7 @@ export function Nav({
       </header>
 
       <aside data-nav-side aria-label="Primary" className="nav-side rail fixed inset-y-0 left-0 z-50 hidden w-[72px] flex-col items-center py-3 lg:flex">
-        <a href={withBase(`/${locale}/`)} data-tip={brand.handle} className="rail-btn rail-logo">
+        <a href={withBase(`/${locale}/`)} data-astro-reload="" data-tip={brand.handle} className="rail-btn rail-logo">
           <span className="grid h-10 w-10 place-items-center rounded-2xl text-[16px] font-semibold text-white" style={{ background: "linear-gradient(135deg,#f472b6,#6366f1)" }}>S</span>
         </a>
         <i className="rail-sep" aria-hidden="true" />
@@ -220,6 +222,14 @@ export function Nav({
               <DownloadSimple size={16} weight="light" />
             </span>
           </a>
+          <div
+            style={{ transitionDelay: open ? `${220 + links.length * 60}ms` : "0ms" }}
+            className={`mt-6 flex items-center gap-2 transition-all duration-700 sm:hidden ${ease} ${
+              open ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
+            }`}
+          >
+            {controls}
+          </div>
         </nav>
       </div>
     </>
