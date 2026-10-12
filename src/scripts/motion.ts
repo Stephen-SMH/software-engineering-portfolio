@@ -12,7 +12,7 @@ import { initThemeToggle } from "./theme";
  * keyed on that class. Without it the page is a plain, fully visible document.
  *
  * Two lifetimes:
- *  - once per document: Lenis smooth scroll, progress bar, cursor, nav hiding
+ *  - once per document: Lenis smooth scroll, progress bar, nav hiding
  *  - once per page view (astro:page-load): every scroll/entrance animation,
  *    wrapped in a gsap.context so it can be reverted before the next swap.
  */
@@ -46,7 +46,7 @@ let globalReady = false;
 function setupGlobal() {
   globalReady = true;
 
-  lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.95, anchors: { offset: -72, duration: 1.6 } });
+  lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.95 });
   lenis.on("scroll", ScrollTrigger.update);
   gsap.ticker.add((t) => lenis?.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
@@ -56,44 +56,28 @@ function setupGlobal() {
     else if (html.dataset.intro !== "play") lenis?.start();
   });
 
+  // Same-page "#section" links. Astro's router and the browser both jump there
+  // instantly, which leaves Lenis out of sync: later clicks land short or barely
+  // move. Capture phase, so this runs before the router and it stands aside.
+  // The offset comes from `scroll-padding-top` on <html>, which Lenis honours.
+  document.addEventListener("click", (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = (e.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
+    const id = link?.getAttribute("href")!.slice(1);
+    const target = id ? document.getElementById(id) : null;
+    if (!target) return;
+    e.preventDefault();
+    history.replaceState(null, "", `#${id}`);
+    // `force`: the mobile menu stops Lenis while open; it closes on this same click.
+    requestAnimationFrame(() => lenis?.scrollTo(target, { duration: 1.2, force: true }));
+  }, true);
+
   const setProgress = gsap.quickSetter($("[data-progress]")[0], "scaleX");
   lenis.on("scroll", (l: Lenis) => {
     setProgress(l.progress);
     // Floating nav steps aside while reading down, returns on any upward scroll.
     $("[data-nav]")[0]?.setAttribute("data-hidden", String(l.direction === 1 && l.scroll > 260));
   });
-
-  if (fine) setupCursor();
-}
-
-function setupCursor() {
-  const ring = $("[data-cursor-ring]")[0];
-  const dot = $("[data-cursor-dot]")[0];
-  if (!ring || !dot) return;
-
-  const rx = gsap.quickTo(ring, "x", { duration: 0.55, ease: "power3.out" });
-  const ry = gsap.quickTo(ring, "y", { duration: 0.55, ease: "power3.out" });
-  const dx = gsap.quickTo(dot, "x", { duration: 0.12, ease: "power3.out" });
-  const dy = gsap.quickTo(dot, "y", { duration: 0.12, ease: "power3.out" });
-  let shown = false;
-
-  window.addEventListener("pointermove", (e) => {
-    if (!shown) {
-      shown = true;
-      gsap.set([ring, dot], { x: e.clientX, y: e.clientY });
-      gsap.to([ring, dot], { opacity: 1, duration: 0.4 });
-    }
-    rx(e.clientX);
-    ry(e.clientY);
-    dx(e.clientX);
-    dy(e.clientY);
-  });
-  document.addEventListener("pointerover", (e) => {
-    const hot = (e.target as Element).closest("a, button, input, textarea, label, [data-tilt]");
-    ring.classList.toggle("is-hot", !!hot);
-  });
-  document.documentElement.addEventListener("pointerleave", () => gsap.to([ring, dot], { opacity: 0, duration: 0.3 }));
-  document.documentElement.addEventListener("pointerenter", () => shown && gsap.to([ring, dot], { opacity: 1, duration: 0.3 }));
 }
 
 /* -------------------------------------------------------------------------- */

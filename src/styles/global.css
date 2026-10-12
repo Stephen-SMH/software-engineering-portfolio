@@ -488,47 +488,6 @@ html[data-intro="play"] body {
   background: linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 40%, white));
 }
 
-/* Cursor follower (fine pointers only; the native cursor stays). */
-.cursor {
-  display: none;
-}
-@media (hover: hover) and (pointer: fine) {
-  html.motion .cursor {
-    display: block;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 90;
-    pointer-events: none;
-    border-radius: 9999px;
-    opacity: 0;
-    will-change: transform;
-  }
-  html.motion .cursor-dot {
-    width: 6px;
-    height: 6px;
-    margin: -3px 0 0 -3px;
-    background: var(--accent);
-  }
-  html.motion .cursor-ring {
-    width: 44px;
-    height: 44px;
-    margin: -22px 0 0 -22px;
-    box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 60%, transparent);
-    transition:
-      width 0.5s var(--ease),
-      height 0.5s var(--ease),
-      margin 0.5s var(--ease),
-      background-color 0.5s var(--ease);
-  }
-  html.motion .cursor-ring.is-hot {
-    width: 76px;
-    height: 76px;
-    margin: -38px 0 0 -38px;
-    background-color: color-mix(in oklab, var(--accent) 14%, transparent);
-  }
-}
-
 /* Floating nav hides while reading down, returns on scroll up. */
 [data-nav] {
   transition: transform 0.7s var(--ease);
