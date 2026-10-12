@@ -428,6 +428,18 @@ export const en: Dict = {
         ],
       },
       {
+        kicker: "Personal project · AI agents · Full stack",
+        title: "BluePrint+ - describe it, approve it, craft it",
+        desc: "A crafting-blueprint app where you ask an agent how to make something (beef jerky, sourdough, soap) and get a full workflow back: materials, steps with times and temperatures, nutrition and safety notes. The agent only drafts; nothing is saved until a person approves it. Web, desktop and mobile clients share one API, with live collaboration rooms where everyone can call the agent in.",
+        stats: [
+          { value: "Approve", label: "agents propose, people decide what gets saved" },
+          { value: "2", label: "agent engines (GitHub Copilot SDK, Agno) behind one CopilotKit runtime" },
+          { value: "3", label: "clients on one API: React web, Tauri desktop, Expo mobile" },
+          { value: "Live", label: "shared rooms with presence, chat and an @copilot agent" },
+        ],
+        tags: ["TypeScript", "React", "Node.js", "PostgreSQL", "Copilot SDK", "CopilotKit", "Agno", "Tauri", "React Native"],
+      },
+      {
         kicker: "Tech Links Asia · Social media management",
         title: "A social media platform - six channels behind one registry",
         desc: "Shipped solo from spec to deploy: FastAPI / SQLAlchemy API, a production React / TypeScript frontend, and an AI copilot embedded in the composer and post editing.",
