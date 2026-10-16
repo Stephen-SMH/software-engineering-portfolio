@@ -6,7 +6,8 @@ including personal websites.
 
 ## View visitor statistics
 
-Tracking is configured for the `stephen-account` GoatCounter site. View the
+Tracking is configured for the `stephen-account` GoatCounter site on the
+software-engineering, desktop, and game portfolios. View their combined
 statistics in the [GoatCounter dashboard](https://stephen-account.goatcounter.com/).
 
 The tracker counts the initial page load and Astro client-side page changes.
