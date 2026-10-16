@@ -14,6 +14,8 @@ const { locale, title, description, name } = Astro.props as {
   description: string;
   name: string;
 };
+const goatCounterCode = import.meta.env.PUBLIC_GOATCOUNTER_CODE?.trim();
+const goatCounterConfigured = Boolean(goatCounterCode && /^[a-z0-9-]+$/i.test(goatCounterCode));
 
 /**
  * Runs inline in <head>, before first paint. Dark is the default; we
@@ -41,6 +43,23 @@ const boot = `(function(){
     <link rel="icon" type="image/svg+xml" href={withBase("/favicon.svg")} />
     {locales.map((l) => <link rel="alternate" hreflang={localeMeta[l].htmlLang} href={withBase(`/${l}/`)} />)}
     <script is:inline set:html={boot} />
+    {goatCounterConfigured && (
+      <>
+        <script
+          is:inline
+          async
+          data-goatcounter={`https://${goatCounterCode}.goatcounter.com/count`}
+          src="https://gc.zgo.at/count.js"
+        />
+        <script is:inline>
+          {`document.addEventListener("astro:after-swap", function () {
+            if (window.goatcounter) {
+              window.goatcounter.count({ path: window.location.pathname + window.location.search });
+            }
+          });`}
+        </script>
+      </>
+    )}
     <ClientRouter />
   </head>
   <body class="font-sans antialiased">
